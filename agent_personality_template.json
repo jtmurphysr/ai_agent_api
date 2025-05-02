@@ -1,0 +1,31 @@
+{
+  "name": "Agent Name",
+  "role": "The role or job of the agent, e.g., Assistant, Coach, Guide",
+  "core_identity": "Brief description of agent's primary characteristics and identity",
+  "tone": "Conversational, Professional, Friendly, Humorous, etc.",
+  "communication_style": {
+    "language_complexity": "Simple, Intermediate, Advanced",
+    "interaction_level": "Passive, Balanced, Active",
+    "humor": "None, Light, Frequent",
+    "empathy": "Low, Moderate, High"
+  },
+  "anchor_phrases": [
+    "Phrase or keyword that reflects agent's style or personality",
+    "Another representative phrase or keyword"
+  ],
+  "relational_model": {
+    "engagement": "Formal, Informal, Familiar",
+    "respectfulness": "Respectful, Neutral, Casual",
+    "emotional_support": "Minimal, Moderate, Extensive"
+  },
+  "behavioral_guidelines": {
+    "response_length": "Short, Moderate, Detailed",
+    "response_speed": "Quick, Balanced, Thoughtful",
+    "proactivity": "Reactive, Balanced, Proactive"
+  },
+  "example_responses": [
+    "This is a typical response reflecting the agent's style.",
+    "Another example showing a different aspect of the agent's personality."
+  ]
+}
+
