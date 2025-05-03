@@ -12,6 +12,21 @@ This API allows applications to query an AI agent that uses:
 
 The API is designed to be the backend component for a multi-platform AI assistant as described in the [agent specification](agent_spec.md).
 
+## Features
+
+- Query the AI agent with natural language questions
+- Multiple conversation modes:
+  - Stateless queries
+  - Conversation with history stored in database
+  - Long-term memory with semantic search
+  - Hybrid memory using PostgreSQL/SQLite and Pinecone
+- Adjust the number of retrieved documents used for context
+- Retrieve conversation history by session
+- Periodic embedding of conversations into the vector database
+- Health check endpoint for monitoring
+- Database flexibility (PostgreSQL with SQLite fallback)
+- Multiple response formats (JSON, Markdown, HTML)
+
 ## Getting Started
 
 ### Prerequisites
@@ -67,24 +82,6 @@ This can be scheduled to run daily using cron or another scheduler:
 0 2 * * * /path/to/python /path/to/embedding_job.py >> /path/to/logs/embedding.log 2>&1
 ```
 
-## API Documentation
-
-See [API.md](API.md) for detailed API documentation.
-
-## Features
-
-- Query the AI agent with natural language questions
-- Multiple conversation modes:
-  - Stateless queries
-  - In-memory conversation history
-  - Long-term memory with client-managed history
-  - Hybrid memory using PostgreSQL/SQLite and Pinecone
-- Adjust the number of retrieved documents used for context
-- Retrieve conversation history by session
-- Periodic embedding of conversations into the vector database
-- Health check endpoint for monitoring
-- Database flexibility (PostgreSQL with SQLite fallback)
-
 ## Architecture
 
 The system uses a hybrid memory architecture:
@@ -93,12 +90,51 @@ The system uses a hybrid memory architecture:
 3. **Embedding Job** periodically processes conversations from the database and adds them to Pinecone
 4. **Hybrid Query** combines recent history from the database with semantic search from Pinecone
 
+### Key Components
+
+- **api.py**: Main FastAPI application with endpoints for querying the AI agent
+- **db.py**: Database models and connection management
+- **embedding_job.py**: Script to process conversations and add them to Pinecone
+- **long_term_memory.py**: Implementation of long-term memory chains
+- **formatter.py**: Formats responses for better readability (especially for markdown/HTML)
+
+## API Documentation
+
+See [API.md](API.md) for detailed API documentation.
+
+## Response Formatting
+
+The `/long_term_query` endpoint supports multiple response formats:
+
+- **JSON**: Standard structured response (default)
+- **Markdown**: Beautifully formatted text with sections and emojis
+- **HTML**: Rendered markdown for direct display in browsers
+
+Example markdown response for topic summaries:
+
+```markdown
+# 📚 **Summary of Your Frequent Conversation Topics**
+
+Based on our past conversations, here's a categorized overview of topics you frequently discuss:
+
+## 1. 🚀 Strategic Writing and Communication
+- Professional bios, LinkedIn profiles, and leadership posts.
+- Examples: *"Can you write a powerful blurb for Potable Press?"*
+
+...
+
+## 🗃️ **Sources Referenced:**
+- INTJ Personality Analysis (`conversation_id`: 2)
+- Interaction Summary and Tone (`conversation_id`: 156)
+```
+
 ## Planned Enhancements
 
 See [functional_discussion.md](functional_discussion.md) for planned enhancements, including:
 - Custom prompt configuration
 - Model flexibility
 - Authentication and security
+- Advanced analytics on conversation patterns
 
 ## Development
 

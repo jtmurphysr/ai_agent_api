@@ -46,21 +46,49 @@ Submit a query to the AI agent and receive a response based on the agent's knowl
 }
 ```
 
-### Conversation with In-Memory History
+### Conversation with Database History
 
 ```
 POST /conversation
 ```
 
-Submit a query to the AI agent with in-memory conversation history. This endpoint maintains conversation context between requests but the history is lost if the server restarts.
+Submit a query to the AI agent with conversation history stored in the database. This endpoint maintains conversation context between requests by storing messages in the database.
 
 #### Request Body
 
 Same as `/query` endpoint.
 
+#### Query Parameters
+
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| session_id | string | Session ID for continuing a conversation | No |
+
 #### Response
 
-Same as `/query` endpoint.
+| Field | Type | Description |
+|-------|------|-------------|
+| response | string | The AI agent's response to the query |
+| session_id | string | Session ID for the conversation |
+| sources | array | Source documents used for the response (if available) |
+
+#### Example Response
+
+```json
+{
+  "response": "Paris is the capital of France. It's known for landmarks like the Eiffel Tower and the Louvre Museum.",
+  "session_id": "123e4567-e89b-12d3-a456-426614174000",
+  "sources": [
+    {
+      "content": "Paris is the capital and most populous city of France...",
+      "metadata": {
+        "source": "geography_database",
+        "last_updated": "2023-01-15"
+      }
+    }
+  ]
+}
+```
 
 ### Long-Term Memory Query
 
@@ -173,50 +201,6 @@ Based on our past conversations, here's a categorized overview of topics you fre
 
 5. **Formatted Responses**: Use the `format` parameter to get responses in markdown or HTML for better presentation in user interfaces.
 
-### Hybrid Memory Query
-
-```
-POST /hybrid_memory
-```
-
-Submit a query that uses both database (PostgreSQL/SQLite) for recent conversation history and Pinecone for semantic retrieval. This endpoint maintains conversation history in the database.
-
-#### Request Body
-
-Same as `/query` endpoint.
-
-#### Query Parameters
-
-| Parameter | Type | Description | Required |
-|-----------|------|-------------|----------|
-| session_id | string | Session ID for continuing a conversation | No |
-
-#### Response
-
-| Field | Type | Description |
-|-------|------|-------------|
-| response | string | The AI agent's response to the query |
-| session_id | string | Session ID for the conversation |
-| sources | array | Source documents used for the response (if available) |
-
-#### Example Response
-
-```json
-{
-  "response": "Paris has a population of approximately 2.2 million people in the city proper, while the greater Paris metropolitan area has a population of about 12 million.",
-  "session_id": "123e4567-e89b-12d3-a456-426614174000",
-  "sources": [
-    {
-      "content": "Paris is the capital and most populous city of France. The city proper has a population of 2.2 million, while the Paris metropolitan area has a population of over 12 million people.",
-      "metadata": {
-        "source": "geography_database",
-        "last_updated": "2023-01-15"
-      }
-    }
-  ]
-}
-```
-
 ### Get Session History
 
 ```
@@ -269,7 +253,9 @@ Check if the API service is running properly.
 
 ```json
 {
-  "status": "healthy"
+  "status": "healthy",
+  "timestamp": "2023-06-01T12:00:00Z",
+  "chains_initialized": true
 }
 ```
 
@@ -296,4 +282,19 @@ The API automatically detects and uses:
 - PostgreSQL if available (using the DATABASE_URL environment variable or system username)
 - SQLite as a fallback for development environments
 
-This allows for easy development setup while supporting production-grade database capabilities when needed. 
+This allows for easy development setup while supporting production-grade database capabilities when needed.
+
+## Response Formatting
+
+The `/long_term_query` endpoint supports three response formats:
+
+1. **JSON** (default): Standard structured data format for programmatic use
+2. **Markdown**: Beautifully formatted text with headings, lists, and emojis
+3. **HTML**: Rendered markdown for direct display in web applications
+
+To specify the format, use the `format` query parameter:
+```
+/long_term_query?format=markdown
+```
+
+The markdown format is particularly useful for summary-type queries, providing a well-structured and readable response that can be displayed directly to users. 
