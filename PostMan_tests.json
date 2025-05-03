@@ -1,0 +1,592 @@
+{
+    "info": {
+      "name": "AI Agent API Tests",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+      "description": "Tests for validating the AI Agent API endpoints"
+    },
+    "item": [
+      {
+        "name": "Health Check",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/health",
+            "host": ["{{baseUrl}}"],
+            "path": ["health"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response contains status field\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('status');",
+                "    pm.expect(jsonData.status).to.eql('healthy');",
+                "});",
+                "",
+                "pm.test(\"Response contains timestamp\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('timestamp');",
+                "});",
+                "",
+                "pm.test(\"Response contains chains_initialized\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('chains_initialized');",
+                "});",
+                "",
+                "pm.test(\"Response contains personalities_loaded\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('personalities_loaded');",
+                "    pm.expect(jsonData.personalities_loaded).to.be.a('number');",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Query the AI Agent (Stateless)",
+        "request": {
+          "method": "POST",
+          "url": {
+            "raw": "{{baseUrl}}/query",
+            "host": ["{{baseUrl}}"],
+            "path": ["query"]
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"query\": \"What is the capital of France?\",\n  \"max_results\": 3\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has response field\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('response');",
+                "    pm.expect(jsonData.response).to.be.a('string');",
+                "    pm.expect(jsonData.response.length).to.be.greaterThan(0);",
+                "});",
+                "",
+                "pm.test(\"Response has sources array\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('sources');",
+                "    pm.expect(jsonData.sources).to.be.an('array');",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Query with Personality",
+        "request": {
+          "method": "POST",
+          "url": {
+            "raw": "{{baseUrl}}/query",
+            "host": ["{{baseUrl}}"],
+            "path": ["query"]
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"query\": \"What is the capital of France?\",\n  \"max_results\": 3,\n  \"personality_id\": \"milton\"\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has response field\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('response');",
+                "    pm.expect(jsonData.response).to.be.a('string');",
+                "    pm.expect(jsonData.response.length).to.be.greaterThan(0);",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Start Conversation",
+        "request": {
+          "method": "POST",
+          "url": {
+            "raw": "{{baseUrl}}/conversation",
+            "host": ["{{baseUrl}}"],
+            "path": ["conversation"]
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"query\": \"Hello, who are you?\",\n  \"max_results\": 3\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has response field\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('response');",
+                "    pm.expect(jsonData.response).to.be.a('string');",
+                "});",
+                "",
+                "pm.test(\"Response has session_id\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('session_id');",
+                "    pm.expect(jsonData.session_id).to.be.a('string');",
+                "    pm.expect(jsonData.session_id.length).to.be.greaterThan(0);",
+                "    ",
+                "    // Save the session_id for future requests",
+                "    pm.environment.set(\"session_id\", jsonData.session_id);",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Continue Conversation",
+        "request": {
+          "method": "POST",
+          "url": {
+            "raw": "{{baseUrl}}/conversation?session_id={{session_id}}",
+            "host": ["{{baseUrl}}"],
+            "path": ["conversation"],
+            "query": [
+              {
+                "key": "session_id",
+                "value": "{{session_id}}"
+              }
+            ]
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"query\": \"Tell me more about yourself\"\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has response field\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('response');",
+                "    pm.expect(jsonData.response).to.be.a('string');",
+                "});",
+                "",
+                "pm.test(\"Response has the same session_id\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('session_id');",
+                "    pm.expect(jsonData.session_id).to.eql(pm.environment.get(\"session_id\"));",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Long-Term Memory Query",
+        "request": {
+          "method": "POST",
+          "url": {
+            "raw": "{{baseUrl}}/long_term_query?format=json",
+            "host": ["{{baseUrl}}"],
+            "path": ["long_term_query"],
+            "query": [
+              {
+                "key": "format",
+                "value": "json"
+              }
+            ]
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"query\": \"Based on our conversations, what topics have we discussed?\",\n  \"session_id\": \"{{session_id}}\",\n  \"max_results\": 5\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has response field\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('response');",
+                "    pm.expect(jsonData.response).to.be.a('string');",
+                "});",
+                "",
+                "pm.test(\"Response has session_id\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('session_id');",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Long-Term Memory Query with Markdown Format",
+        "request": {
+          "method": "POST",
+          "url": {
+            "raw": "{{baseUrl}}/long_term_query?format=markdown",
+            "host": ["{{baseUrl}}"],
+            "path": ["long_term_query"],
+            "query": [
+              {
+                "key": "format",
+                "value": "markdown"
+              }
+            ]
+          },
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"query\": \"Based on our conversations, what topics have we discussed?\",\n  \"session_id\": \"{{session_id}}\",\n  \"max_results\": 5\n}",
+            "options": {
+              "raw": {
+                "language": "json"
+              }
+            }
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has response field\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('response');",
+                "    pm.expect(jsonData.response).to.be.a('string');",
+                "    pm.expect(jsonData.response).to.include('#'); // Should contain markdown syntax",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Get Session History",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/sessions/{{session_id}}/history",
+            "host": ["{{baseUrl}}"],
+            "path": ["sessions", "{{session_id}}", "history"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has session_id\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('session_id');",
+                "    pm.expect(jsonData.session_id).to.eql(pm.environment.get(\"session_id\"));",
+                "});",
+                "",
+                "pm.test(\"Response has messages array\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('messages');",
+                "    pm.expect(jsonData.messages).to.be.an('array');",
+                "    pm.expect(jsonData.messages.length).to.be.greaterThan(0);",
+                "});",
+                "",
+                "pm.test(\"Messages have the required properties\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    var message = jsonData.messages[0];",
+                "    pm.expect(message).to.have.property('role');",
+                "    pm.expect(message).to.have.property('content');",
+                "    pm.expect(message).to.have.property('timestamp');",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "List Personalities",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/personalities",
+            "host": ["{{baseUrl}}"],
+            "path": ["personalities"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response is an array\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.be.an('array');",
+                "});",
+                "",
+                "if (pm.response.json().length > 0) {",
+                "    pm.test(\"Personalities have required properties\", function () {",
+                "        var jsonData = pm.response.json();",
+                "        var personality = jsonData[0];",
+                "        pm.expect(personality).to.have.property('id');",
+                "        pm.expect(personality).to.have.property('name');",
+                "        pm.expect(personality).to.have.property('type');",
+                "        pm.expect(personality).to.have.property('role');",
+                "    });",
+                "    ",
+                "    // Store the first personality ID for later tests",
+                "    pm.environment.set(\"personality_id\", pm.response.json()[0].id);",
+                "}"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Get Personality Prompt",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/personalities/{{personality_id}}/prompt",
+            "host": ["{{baseUrl}}"],
+            "path": ["personalities", "{{personality_id}}", "prompt"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response is a string\", function () {",
+                "    pm.expect(pm.response.text()).to.be.a('string');",
+                "    pm.expect(pm.response.text().length).to.be.greaterThan(0);",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Upload Personality",
+        "request": {
+          "method": "POST",
+          "url": {
+            "raw": "{{baseUrl}}/personalities/upload",
+            "host": ["{{baseUrl}}"],
+            "path": ["personalities", "upload"]
+          },
+          "body": {
+            "mode": "formdata",
+            "formdata": [
+              {
+                "key": "file",
+                "type": "file",
+                "src": "./test_personality.txt"
+              },
+              {
+                "key": "name",
+                "value": "Test Personality"
+              }
+            ]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "// This test is commented out because it requires an actual file to upload",
+                "// Uncomment and modify when running with a real file",
+                "/*",
+                "pm.test(\"Status code is 200\", function () {",
+                "    pm.response.to.have.status(200);",
+                "});",
+                "",
+                "pm.test(\"Response has message\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('message');",
+                "    pm.expect(jsonData.message).to.include('uploaded successfully');",
+                "});",
+                "",
+                "pm.test(\"Response has personality_id\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('personality_id');",
+                "});",
+                "*/"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Error Tests - Invalid Session ID",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/sessions/invalid-session-id/history",
+            "host": ["{{baseUrl}}"],
+            "path": ["sessions", "invalid-session-id", "history"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 404 or 400\", function () {",
+                "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+                "});",
+                "",
+                "pm.test(\"Response has detail field for error\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('detail');",
+                "});"
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "name": "Error Tests - Invalid Personality ID",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "{{baseUrl}}/personalities/non-existent-id/prompt",
+            "host": ["{{baseUrl}}"],
+            "path": ["personalities", "non-existent-id", "prompt"]
+          }
+        },
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "type": "text/javascript",
+              "exec": [
+                "pm.test(\"Status code is 404\", function () {",
+                "    pm.response.to.have.status(404);",
+                "});",
+                "",
+                "pm.test(\"Response has detail field for error\", function () {",
+                "    var jsonData = pm.response.json();",
+                "    pm.expect(jsonData).to.have.property('detail');",
+                "});"
+              ]
+            }
+          }
+        ]
+      }
+    ],
+    "variable": [
+      {
+        "key": "baseUrl",
+        "value": "http://127.0.0.1:5001",
+        "type": "string"
+      }
+    ],
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            ""
+          ]
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "type": "text/javascript",
+          "exec": [
+            ""
+          ]
+        }
+      }
+    ]
+  }
