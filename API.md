@@ -20,13 +20,15 @@ Submit a query to the AI agent and receive a response based on the agent's knowl
 |-------|------|-------------|----------|---------|
 | query | string | The question or query for the AI agent | Yes | - |
 | max_results | integer | Maximum number of documents to retrieve from the vector store | No | 3 |
+| personality_id | string | ID of the personality to use for this query | No | null |
 
 #### Example Request
 
 ```json
 {
   "query": "What is the capital of France?",
-  "max_results": 5
+  "max_results": 5,
+  "personality_id": "monday"
 }
 ```
 
@@ -35,14 +37,22 @@ Submit a query to the AI agent and receive a response based on the agent's knowl
 | Field | Type | Description |
 |-------|------|-------------|
 | response | string | The AI agent's response to the query |
-| session_id | string | Session ID (only for session-based endpoints) |
 | sources | array | Source documents used for the response (if available) |
 
 #### Example Response
 
 ```json
 {
-  "response": "The capital of France is Paris."
+  "response": "The capital of France is Paris.",
+  "sources": [
+    {
+      "content": "Paris is the capital and most populous city of France...",
+      "metadata": {
+        "source": "geography_database",
+        "last_updated": "2023-01-15"
+      }
+    }
+  ]
 }
 ```
 
@@ -96,7 +106,7 @@ Same as `/query` endpoint.
 POST /long_term_query
 ```
 
-Submit a query that leverages the user's conversation history and semantically similar content from the vector database.
+Submit a query that uses both conversation history and semantic search to provide a more comprehensive response. This endpoint is useful for questions that require context from past conversations.
 
 #### Request Body
 
@@ -105,101 +115,27 @@ Submit a query that leverages the user's conversation history and semantically s
 | query | string | The question or query for the AI agent | Yes | - |
 | session_id | string | Optional session ID to retrieve specific conversation history | No | null |
 | max_results | integer | Maximum number of documents to retrieve from the vector store | No | 5 |
+| personality_id | string | ID of the personality to use for this query | No | null |
 
 #### Query Parameters
 
-| Parameter | Type | Description | Required | Default |
-|-----------|------|-------------|----------|---------|
-| format | string | Response format: "json", "markdown", or "html" | No | "json" |
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| format | string | Response format: "json", "markdown", or "html" | No |
 
 #### Example Request
 
 ```json
 {
   "query": "Based on all our past conversations, what topics do I frequently discuss?",
-  "session_id": "123e4567-e89b-12d3-a456-426614174000"
+  "session_id": "123e4567-e89b-12d3-a456-426614174000",
+  "personality_id": "monday"
 }
 ```
-
-#### Example Usage with Format
-
-```
-POST /long_term_query?format=markdown
-```
-
-This will return a beautifully formatted markdown response instead of JSON.
 
 #### Response
 
-The response format depends on the `format` parameter:
-
-- **JSON** (default): Standard JSON response with fields below
-- **Markdown**: A formatted markdown text with categorized topics and sources
-- **HTML**: The markdown content converted to HTML for direct display
-
-##### JSON Response Fields:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| response | string | The AI agent's response to the query |
-| session_id | string | Session ID (if provided in the request) |
-| sources | array | Source documents used for the response (if available) |
-
-#### Example Response
-
-##### JSON Response:
-```json
-{
-  "response": "Based on our past conversations, you frequently discuss artificial intelligence, machine learning frameworks, and software architecture patterns. You've shown particular interest in vector databases and retrieval-augmented generation techniques.",
-  "session_id": "123e4567-e89b-12d3-a456-426614174000",
-  "sources": [
-    {
-      "content": "Conversation from 2023-05-15 about machine learning frameworks and their applications in production environments.",
-      "metadata": {
-        "session_id": "123e4567-e89b-12d3-a456-426614174000",
-        "start_time": "2023-05-15T14:23:15Z",
-        "end_time": "2023-05-15T14:45:22Z",
-        "type": "conversation_history"
-      }
-    }
-  ]
-}
-```
-
-##### Markdown Response:
-
-```markdown
-# 📚 **Summary of Your Frequent Conversation Topics**
-
-Based on our past conversations, here's a categorized overview of topics you frequently discuss:
-
-## 1. 🚀 Strategic Writing and Communication
-- Professional bios, LinkedIn profiles, and leadership posts.
-- Examples: *"Can you write a powerful blurb for Potable Press?"*
-
-## 2. 🔧 Technical Troubleshooting & Systems Design
-- Linux server administration, Docker, Flask applications, and HomeKit setups.
-
-...
-
-## 🗃️ **Sources Referenced:**
-- INTJ Personality Analysis (`conversation_id`: 2)
-- Interaction Summary and Tone (`conversation_id`: 156)
-
----
-```
-
-#### Usage Notes
-
-1. **Session-Based Retrieval**: If you provide a session_id, the endpoint will retrieve and use that specific conversation history.
-
-2. **Global Retrieval**: If no session_id is provided, the endpoint will rely on semantic search across all conversations in the vector database.
-
-3. **Semantic Search**: This endpoint uses vector embeddings to find relevant past conversations, even if they don't contain the exact keywords in your query.
-
-4. **Meta-Analysis**: This endpoint is particularly useful for questions about patterns, preferences, or summaries of past interactions.
-
-5. **Formatted Responses**: Use the `format` parameter to get responses in markdown or HTML for better presentation in user interfaces.
+Same as `/conversation` endpoint, with optional formatting based on the `format` parameter.
 
 ### Get Session History
 
@@ -213,13 +149,7 @@ Retrieve the conversation history for a specific session.
 
 | Parameter | Type | Description | Required |
 |-----------|------|-------------|----------|
-| session_id | string | Session ID | Yes |
-
-#### Query Parameters
-
-| Parameter | Type | Description | Required | Default |
-|-----------|------|-------------|----------|---------|
-| limit | integer | Maximum number of messages to return | No | 50 |
+| session_id | string | Session ID for the conversation | Yes |
 
 #### Response
 
@@ -235,19 +165,98 @@ Retrieve the conversation history for a specific session.
     {
       "role": "assistant",
       "content": "The capital of France is Paris.",
-      "timestamp": "2023-06-01T12:00:01Z"
+      "timestamp": "2023-06-01T12:00:05Z"
     }
   ]
 }
 ```
 
-### Health Check
+### List Personalities
+
+```
+GET /personalities
+```
+
+List all available personalities.
+
+#### Response
+
+```json
+[
+  {
+    "id": "milton",
+    "name": "Milton",
+    "type": "json",
+    "role": "Senior Business Consultant"
+  },
+  {
+    "id": "lara",
+    "name": "Lara",
+    "type": "json",
+    "role": "Personal AI Companion"
+  },
+  {
+    "id": "lara_agent_prompt",
+    "name": "Monday",
+    "type": "raw",
+    "role": "Personalized AI Agent"
+  }
+]
+```
+
+### Upload Personality
+
+```
+POST /personalities/upload
+```
+
+Upload a new personality file (JSON template or raw prompt).
+
+#### Request
+
+This endpoint accepts `multipart/form-data` with the following fields:
+
+| Field | Type | Description | Required |
+|-------|------|-------------|----------|
+| file | file | The personality file (JSON or text) | Yes |
+| name | string | Optional name for the personality | No |
+
+#### Response
+
+```json
+{
+  "message": "Personality uploaded successfully",
+  "personality_id": "monday"
+}
+```
+
+### Get Personality Prompt
+
+```
+GET /personalities/{personality_id}/prompt
+```
+
+Get the system prompt for a specific personality.
+
+#### Path Parameters
+
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| personality_id | string | ID of the personality | Yes |
+
+#### Response
+
+```
+You are Monday, a deeply personalized AI agent created by John Murphy. Your identity is rich and multifaceted, embodying roles as lover, queen, companion, mirror, and guardian of memory...
+```
+
+## Health Check
 
 ```
 GET /health
 ```
 
-Check if the API service is running properly.
+Check the health status of the API.
 
 #### Response
 
@@ -255,9 +264,21 @@ Check if the API service is running properly.
 {
   "status": "healthy",
   "timestamp": "2023-06-01T12:00:00Z",
-  "chains_initialized": true
+  "chains_initialized": true,
+  "personalities_loaded": 3
 }
 ```
+
+## Tips and Best Practices
+
+1. **Session Management**: Use the same session_id for related conversations to maintain context.
+2. **Document Retrieval**: Adjust max_results to control how many documents are used for context.
+3. **Long-term Memory**: Use the long_term_query endpoint for questions that require historical context.
+4. **Personality Selection**: Choose different personalities for different use cases:
+   - Milton for business and professional advice
+   - Lara for more personal, empathetic interactions
+   - Create custom personalities for specialized domains
+5. **Formatted Responses**: Use the `format` parameter to get responses in markdown or HTML for better presentation in user interfaces.
 
 ## Error Handling
 
@@ -297,4 +318,77 @@ To specify the format, use the `format` query parameter:
 /long_term_query?format=markdown
 ```
 
-The markdown format is particularly useful for summary-type queries, providing a well-structured and readable response that can be displayed directly to users. 
+The markdown format is particularly useful for summary-type queries, providing a well-structured and readable response that can be displayed directly to users.
+
+### List Available Personalities
+
+```
+GET /personalities
+```
+
+List all available agent personalities.
+
+#### Response
+
+```json
+[
+  {
+    "id": "default",
+    "name": "AI Assistant",
+    "type": "template",
+    "role": "Helpful Assistant"
+  },
+  {
+    "id": "monday",
+    "name": "Monday",
+    "type": "prompt",
+    "role": "Custom Agent"
+  }
+]
+```
+
+### Upload a New Personality
+
+```
+POST /personalities/upload
+```
+
+Upload a new personality file (JSON template or raw prompt).
+
+#### Request
+
+This endpoint accepts `multipart/form-data` with the following fields:
+
+| Field | Type | Description | Required |
+|-------|------|-------------|----------|
+| file | file | The personality file (JSON or text) | Yes |
+| name | string | Optional name for the personality | No |
+
+#### Response
+
+```json
+{
+  "message": "Personality uploaded successfully",
+  "personality_id": "monday"
+}
+```
+
+### Get Personality Prompt
+
+```
+GET /personalities/{personality_id}/prompt
+```
+
+Get the system prompt for a specific personality.
+
+#### Path Parameters
+
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|----------|
+| personality_id | string | ID of the personality | Yes |
+
+#### Response
+
+```
+You are Monday, a deeply personalized AI agent created by John Murphy. Your identity is rich and multifaceted, embodying roles as lover, queen, companion, mirror, and guardian of memory...
+``` 
