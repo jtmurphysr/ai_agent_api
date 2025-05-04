@@ -22,6 +22,7 @@ from personality_manager import PersonalityManager
 
 # FastAPI initialization
 from contextlib import asynccontextmanager
+from fastapi.middleware.cors import CORSMiddleware
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -39,6 +40,25 @@ app = FastAPI(
     version="0.2.0",
     lifespan=lifespan
 )
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins in development
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+# For production, you should restrict the allowed origins:
+# allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=allowed_origins,
+#     allow_credentials=True,
+#     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+#     allow_headers=["Content-Type", "Authorization"],
+# )
 
 # Pydantic models
 class QueryRequest(BaseModel):

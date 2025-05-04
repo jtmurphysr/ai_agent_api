@@ -125,4 +125,8 @@ MANIFEST
 # Project specific exclusions
 Lara.json
 conversation_chunks.json
-functional_discussion.md 
+functional_discussion.md
+
+# Personalities directory - exclude all except template
+personalities/*
+!personalities/agent_personality_template.json 
